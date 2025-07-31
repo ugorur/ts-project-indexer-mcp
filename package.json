@@ -1,5 +1,5 @@
 {
-  "name": "typescript-project-indexer-mcp",
+  "name": "ts-project-indexer-mcp",
   "version": "1.0.1",
   "description": "A powerful MCP (Model Context Protocol) server that indexes and analyzes TypeScript/JavaScript projects, providing intelligent code exploration, dependency tracking, method discovery, and project structure analysis for AI assistants and development tools.",
   "type": "module",

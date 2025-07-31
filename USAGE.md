@@ -6,7 +6,7 @@ This guide shows you how to use TypeScript Project Indexer MCP after setting up 
 
 ### Step 1: Install Globally
 ```bash
-npm install -g typescript-project-indexer-mcp
+npm install -g ts-project-indexer-mcp
 ```
 
 ### Step 2: Use with MCP Client
@@ -37,7 +37,7 @@ ts-project-indexer /path/to/your/typescript/project
     "command": "npx",
     "args": [
       "-y", 
-      "typescript-project-indexer-mcp",
+      "ts-project-indexer-mcp",
       "/home/user/my-project"
     ]
   }
@@ -52,7 +52,7 @@ ts-project-indexer /path/to/your/typescript/project
       "command": "npx",
       "args": [
         "-y",
-        "typescript-project-indexer-mcp", 
+        "ts-project-indexer-mcp", 
         "/Users/user/my-project"
       ],
       "env": {}
@@ -110,10 +110,10 @@ node dist/mcp-server.js ./
 ### Check NPM Package After Publishing
 ```bash
 # Install from NPM
-npx typescript-project-indexer-mcp /path/to/project
+npx ts-project-indexer-mcp /path/to/project
 
 # Verify global installation
-npm install -g typescript-project-indexer-mcp
+npm install -g ts-project-indexer-mcp
 ts-project-indexer --version
 ```
 

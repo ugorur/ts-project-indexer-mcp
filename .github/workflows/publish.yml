@@ -50,12 +50,12 @@ jobs:
             
             ### Installation
             ```bash
-            npm install -g typescript-project-indexer-mcp
+            npm install -g ts-project-indexer-mcp
             ```
             
             ### Usage
             ```bash
-            npx typescript-project-indexer-mcp /path/to/your/project
+            npx ts-project-indexer-mcp /path/to/your/project
             ```
             
             See the [README](https://github.com/ugorur/ts-project-indexer-mcp#readme) for full documentation.

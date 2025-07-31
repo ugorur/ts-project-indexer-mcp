@@ -18,7 +18,7 @@ A powerful **MCP (Model Context Protocol)** server that indexes and analyzes Typ
 ### Via npm (Recommended)
 
 ```bash
-npm install -g typescript-project-indexer-mcp
+npm install -g ts-project-indexer-mcp
 ```
 
 ### Via Git
@@ -43,7 +43,7 @@ Add to your `claude_desktop_config.json`:
       "command": "npx",
       "args": [
         "-y",
-        "typescript-project-indexer-mcp",
+        "ts-project-indexer-mcp",
         "/path/to/your/project"
       ],
       "env": {}
@@ -72,7 +72,7 @@ Add to your MCP configuration:
     "command": "npx",
     "args": [
       "-y", 
-      "typescript-project-indexer-mcp",
+      "ts-project-indexer-mcp",
       "/path/to/your/project"
     ]
   }
@@ -84,7 +84,7 @@ Add to your MCP configuration:
 If you prefer to install globally:
 
 ```bash
-npm install -g typescript-project-indexer-mcp
+npm install -g ts-project-indexer-mcp
 ```
 
 Then use:
