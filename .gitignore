@@ -83,7 +83,7 @@ temp/
 .env
 
 # MCP specific
-cache/
+.cache/
 *.cache
 
 # Project specific debug files
