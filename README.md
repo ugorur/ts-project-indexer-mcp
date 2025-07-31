@@ -283,7 +283,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-**Ugur Orur**
+**Umurcan Gorur**
 - GitHub: [@ugorur](https://github.com/ugorur)
 - Project: [ts-project-indexer-mcp](https://github.com/ugorur/ts-project-indexer-mcp)
 
