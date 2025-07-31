@@ -150,16 +150,20 @@ export class PathResolver {
     // For .js imports, try .ts first (most common in our TypeScript project)
     if (basePath.endsWith('.js')) {
       const tsPath = withoutExt + '.ts'
-      return tsPath // Return absolute path directly
+      return tsPath // Return .ts version for .js imports
     }
 
-    // For other extensions, try in order of preference
-    for (const ext of this.getPossibleExtensions()) {
-      const testPath = withoutExt + ext
-      return testPath // Return absolute path directly for now
+    // For imports without extension, prefer .ts over .js
+    if (!basePath.match(/\.(js|ts|jsx|tsx|json)$/)) {
+      // Check if this looks like a TypeScript project file (within src/ or project root)
+      if (basePath.includes('/src/') || relative(this.projectRoot, basePath).startsWith('src/')) {
+        return withoutExt + '.ts'
+      }
+      // For other files, try .js
+      return withoutExt + '.js'
     }
 
-    // If no extension worked, try the original path
+    // Return original path if it already has an extension
     return basePath
   }
 
@@ -215,28 +219,44 @@ export class PathResolver {
   }
 
   /**
-   * Recursively search for a file in parent directories
+   * Search for a file in project directory and limited parent directories
    */
   private async findFileInParentDirs(filename: string): Promise<any> {
     let currentDir = this.projectRoot
+    const projectRootResolved = resolve(this.projectRoot)
     
-    while (true) {
-      const filePath = join(currentDir, filename)
+    // First try in the project root itself
+    const projectFilePath = join(currentDir, filename)
+    try {
+      const content = await fs.readFile(projectFilePath, 'utf8')
+      return JSON.parse(content)
+    } catch {
+      // Not found in project root
+    }
+    
+    // Only check up to 2 levels above project root (for monorepos)
+    let levelsUp = 0
+    const maxLevelsUp = 2
+    
+    while (levelsUp < maxLevelsUp) {
+      const parentDir = join(currentDir, '..')
+      const parentDirResolved = resolve(parentDir)
       
+      // Stop if we've reached the root directory or gone too far up
+      if (parentDirResolved === resolve(currentDir)) {
+        break
+      }
+      
+      const filePath = join(parentDir, filename)
       try {
         const content = await fs.readFile(filePath, 'utf8')
         return JSON.parse(content)
       } catch {
-        // File not found, try parent directory
-        const parentDir = join(currentDir, '..')
-        
-        // Check if we've reached the root directory
-        if (resolve(parentDir) === resolve(currentDir)) {
-          break
-        }
-        
-        currentDir = parentDir
+        // File not found, continue to next parent
       }
+      
+      currentDir = parentDir
+      levelsUp++
     }
     
     return null

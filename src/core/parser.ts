@@ -46,13 +46,6 @@ export class CodeParser {
           }
         }
 
-        // Debug path resolution
-        if (originalImportPath.includes('config')) {
-          console.error(`🔍 PathResolver Debug:`)
-          console.error(`  Original: ${originalImportPath}`)
-          console.error(`  Resolved: ${resolvedPath}`)
-          console.error(`  From: ${filePath}`)
-        }
 
         dependencies.push({
           from: filePath,

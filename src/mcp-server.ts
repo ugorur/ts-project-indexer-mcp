@@ -12,19 +12,64 @@ import {
 } from '@modelcontextprotocol/sdk/types.js'
 import { ProjectIndexer } from './core/indexer.js'
 import { CacheManager } from './cache/cache-manager.js'
-
-// Simple logger for MCP server (uses stderr to not interfere with MCP protocol)
-const logger = {
-  info: (message: string) => console.error(`[INFO] ${message}`),
-  error: (message: string) => console.error(`[ERROR] ${message}`),
-  debug: (message: string) => console.error(`[DEBUG] ${message}`),
-}
+import { writeFileSync, appendFileSync } from 'fs'
+import { join, resolve } from 'path'
 
 // Parse command line arguments
 const args = process.argv.slice(2)
-const defaultProjectPath = args[0] || './'
+let defaultProjectPath = process.cwd()
+const logEnabled = args.includes('--log')
+
+// Log dosyasının yolunu belirle - MCP server'ın bulunduğu dizinde debug.log
+const serverDir = resolve(process.argv[1], '..')
+const logFilePath = join(serverDir, 'debug.log')
+
+// Enhanced logger with file logging support
+export const logger = {
+  info: (message: string) => {
+    const logMessage = `[INFO] ${new Date().toISOString()} - ${message}`
+    if (logEnabled) {
+      appendFileSync(logFilePath, logMessage + '\n', 'utf8')
+    }
+  },
+  error: (message: string) => {
+    const logMessage = `[ERROR] ${new Date().toISOString()} - ${message}`
+    console.error(logMessage)
+    if (logEnabled) {
+      appendFileSync(logFilePath, logMessage + '\n', 'utf8')
+    }
+  },
+  debug: (message: string) => {
+    const logMessage = `[DEBUG] ${new Date().toISOString()} - ${message}`
+    if (logEnabled) {
+      appendFileSync(logFilePath, logMessage + '\n', 'utf8')
+    }
+  },
+  operation: (operation: string, details?: string) => {
+    const logMessage = `[OPERATION] ${new Date().toISOString()} - ${operation}${details ? ` - ${details}` : ''}`
+    if (logEnabled) {
+      appendFileSync(logFilePath, logMessage + '\n', 'utf8')
+    }
+  }
+}
+
+// Logger'ın enabled durumunu export et
+export const isLogEnabled = () => logEnabled
+
+// Log dosyasını başlat
+if (logEnabled) {
+  writeFileSync(logFilePath, `=== TypeScript Project Indexer MCP Log Started ===\n${new Date().toISOString()}\n\n`, 'utf8')
+  logger.info(`Log sistemi aktif - Debug log dosyası: ${logFilePath}`)
+  logger.info(`Root dizin: ${process.cwd()}`)
+  logger.info(`Başlangıç argümanları: ${JSON.stringify(process.argv)}`)
+}
+
+// Dynamic project path - will be updated via MCP Roots protocol
+let currentProjectPath = defaultProjectPath
 
 logger.info(`TypeScript Project Indexer MCP - Default project path: ${defaultProjectPath}`)
+logger.info(`Current working directory: ${process.cwd()}`)
+logger.info(`Resolved project root: ${currentProjectPath}`)
 
 // Global instance to persist data across tool calls
 let globalIndexer: ProjectIndexer | null = null
@@ -75,8 +120,7 @@ class ProjectIndexerMCPServer {
               properties: {
                 projectPath: {
                   type: 'string',
-                  description: 'Path to the project root directory',
-                  default: './',
+                  description: 'Path to the project root directory. Must be an absolute path (e.g., "/home/user/project" or "C:\\Users\\user\\project")',
                 },
                 includePatterns: {
                   type: 'array',
@@ -88,7 +132,25 @@ class ProjectIndexerMCPServer {
                   type: 'array',
                   items: { type: 'string' },
                   description: 'File patterns to exclude (glob patterns)',
-                  default: ['node_modules/**', 'dist/**', '**/*.d.ts'],
+                  default: [
+                    'node_modules/**', 
+                    'dist/**', 
+                    '**/*.d.ts',
+                    '.git/**',
+                    'plugged/**',
+                    '.local/**',
+                    'cache/**',
+                    'tmp/**',
+                    'temp/**',
+                    'build/**',
+                    'coverage/**',
+                    'test/**',
+                    'tests/**',
+                    '__tests__/**',
+                    '.pytest_cache/**',
+                    '.vscode/**',
+                    '.idea/**'
+                  ],
                 },
                 forceReindex: {
                   type: 'boolean',
@@ -96,7 +158,7 @@ class ProjectIndexerMCPServer {
                   default: false,
                 },
               },
-              required: [],
+              required: ['projectPath'],
             },
           },
           {
@@ -271,18 +333,29 @@ class ProjectIndexerMCPServer {
 
   private async analyzeProject(indexer: ProjectIndexer, args: any) {
     const {
-      projectPath = defaultProjectPath,
+      projectPath,
       includePatterns = ['**/*.ts', '**/*.js', '**/*.json'],
       excludePatterns = ['node_modules/**', 'dist/**', '**/*.d.ts'],
       forceReindex = false,
     } = args
     
+    logger.operation('MCP Tool: analyze_project called', `Path: ${projectPath}, ForceReindex: ${forceReindex}`)
+    logger.info(`🔍 Starting project analysis with path: ${projectPath}`)
+    logger.info(`💼 Process working directory: ${process.cwd()}`)
+    logger.debug(`Include patterns: ${includePatterns.join(', ')}`)
+    logger.debug(`Exclude patterns: ${excludePatterns.join(', ')}`)
+    
+    const toolStartTime = Date.now()
     const result = await indexer.analyzeProject({
       projectPath,
       includePatterns,
       excludePatterns,
       forceReindex,
     })
+    const toolDuration = Date.now() - toolStartTime
+    
+    logger.operation('MCP Tool: analyze_project completed', 
+      `Total duration: ${toolDuration}ms, IndexingTime: ${result.duration}ms, Results: ${result.totalFiles} files, ${result.totalMethods} methods, ${result.totalPaths} paths, ${result.totalDependencies} dependencies`)
 
     return {
       content: [

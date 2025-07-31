@@ -3,6 +3,7 @@ import { join, relative, resolve, basename, extname } from 'node:path'
 import type { CacheManager } from '../cache/cache-manager.js'
 import { CodeParser } from './parser.js'
 import { PathResolver } from './path-resolver.js'
+import { logger } from '../mcp-server.js'
 import type {
   FileInfo,
   MethodInfo,
@@ -29,6 +30,7 @@ export class ProjectIndexer {
       dependencies: new Map(),
       lastIndexed: new Date(0),
     }
+    logger.operation('ProjectIndexer initialized', `Current working directory: ${process.cwd()}`)
   }
 
   async initialize(): Promise<void> {
@@ -45,40 +47,74 @@ export class ProjectIndexer {
     const startTime = Date.now()
     const projectPath = resolve(options.projectPath)
 
+    logger.operation('analyzeProject started', `Project path: ${projectPath}`)
+    logger.debug(`Analiz seçenekleri: ${JSON.stringify(options, null, 2)}`)
+    logger.debug(`Force reindex: ${options.forceReindex}`)
+    logger.debug(`Include patterns: ${options.includePatterns.join(', ')}`)
+    logger.debug(`Exclude patterns: ${options.excludePatterns.join(', ')}`)
+
     // Initialize PathResolver for proper import resolution (always needed)
+    logger.operation('PathResolver initialization', `Initializing for project: ${projectPath}`)
     this.pathResolver = new PathResolver(projectPath)
     await this.pathResolver.initialize()
     this.parser.setPathResolver(this.pathResolver)
+    logger.debug('PathResolver başarıyla başlatıldı ve parser\'a atandı')
 
     // Check if we can use cached data
     const cacheKey = `project-${projectPath}-${JSON.stringify(options)}`
+    logger.debug(`Cache anahtarı oluşturuldu: ${cacheKey}`)
     const cachedData = await this.cache.get<IndexData>(cacheKey)
 
     if (cachedData && !options.forceReindex) {
+      logger.info('Cache\'den veri kullanılıyor - reindex atlanıyor')
       this.indexData = this.deserializeIndexData(cachedData)
-      return this.getStats(Date.now() - startTime)
+      const stats = this.getStats(Date.now() - startTime)
+      logger.operation('analyzeProject completed (cached)', `Duration: ${stats.duration}ms, Files: ${stats.totalFiles}, Methods: ${stats.totalMethods}`)
+      return stats
     }
 
+    logger.operation('File discovery started', `Searching in: ${projectPath}`)
     // Find all files to analyze
     const files = await this.findFiles(projectPath, options)
+    logger.info(`${files.length} dosya bulundu analiz için`)
+    logger.debug(`Bulunan dosyalar: ${files.slice(0, 10).join(', ')}${files.length > 10 ? '...' : ''}`)
 
     // Clear existing data
+    logger.debug('Mevcut index verisi temizleniyor')
     this.clearIndexData()
 
     // Process files in batches for better performance
     const batchSize = 50
+    logger.operation('File processing started', `Processing ${files.length} files in batches of ${batchSize}`)
+    
     for (let i = 0; i < files.length; i += batchSize) {
       const batch = files.slice(i, i + batchSize)
+      const batchNumber = Math.floor(i / batchSize) + 1
+      const totalBatches = Math.ceil(files.length / batchSize)
+      
+      logger.debug(`Batch ${batchNumber}/${totalBatches} işleniyor (${batch.length} dosya)`)
       await Promise.all(batch.map((file: string) => this.processFile(file, projectPath)))
+      
+      // Progress logging every 5 batches
+      if (batchNumber % 5 === 0 || batchNumber === totalBatches) {
+        const processedFiles = Math.min(i + batchSize, files.length)
+        logger.info(`İlerleme: ${processedFiles}/${files.length} dosya işlendi (${Math.round(processedFiles / files.length * 100)}%)`)
+      }
     }
 
     this.indexData.lastIndexed = new Date()
 
     // Cache the results
+    logger.operation('Caching results', `Saving to cache with key: ${cacheKey}`)
     await this.cache.set(cacheKey, this.serializeIndexData(), 1000 * 60 * 60 * 24) // 24 hours
+    logger.debug('Sonuçlar cache\'e başarıyla kaydedildi')
 
     const duration = Date.now() - startTime
-    return this.getStats(duration)
+    const stats = this.getStats(duration)
+    logger.operation('analyzeProject completed', 
+      `Duration: ${stats.duration}ms, Files: ${stats.totalFiles}, Methods: ${stats.totalMethods}, Paths: ${stats.totalPaths}, Dependencies: ${stats.totalDependencies}`)
+    
+    return stats
   }
 
   async searchMethods(
@@ -324,10 +360,26 @@ export class ProjectIndexer {
 
     const walkDirectory = async (dirPath: string): Promise<void> => {
       try {
+        // Ensure we don't go outside the project root
+        const resolvedDirPath = resolve(dirPath)
+        const resolvedProjectPath = resolve(projectPath)
+        
+        if (!resolvedDirPath.startsWith(resolvedProjectPath)) {
+          console.error(`🚫 Skipping directory outside project root: ${resolvedDirPath}`)
+          return
+        }
+        
         const entries = await fs.readdir(dirPath, { withFileTypes: true })
         
         for (const entry of entries) {
           const fullPath = join(dirPath, entry.name)
+          const resolvedFullPath = resolve(fullPath)
+          
+          // Double-check each entry doesn't escape project root
+          if (!resolvedFullPath.startsWith(resolvedProjectPath)) {
+            console.error(`🚫 Skipping path outside project root: ${resolvedFullPath}`)
+            continue
+          }
           
           if (entry.isDirectory()) {
             await walkDirectory(fullPath)
@@ -369,6 +421,8 @@ export class ProjectIndexer {
       const stats = await fs.stat(filePath)
       const relativePath = relative(projectRoot, filePath)
 
+      logger.debug(`Dosya işleniyor: ${relativePath} (${stats.size} bytes)`)
+
       // Store file info
       const fileInfo: FileInfo = {
         path: filePath,
@@ -383,21 +437,33 @@ export class ProjectIndexer {
 
       // Parse code content
       if (this.parser.shouldParseFile(filePath)) {
+        logger.debug(`Code parsing başlıyor: ${relativePath}`)
+        const parseStartTime = Date.now()
         const { methods, paths, dependencies } = await this.parser.parseFile(filePath)
+        const parseTime = Date.now() - parseStartTime
+        
+        logger.debug(`Parse tamamlandı: ${relativePath} (${parseTime}ms) - Methods: ${methods.length}, Paths: ${paths.length}, Dependencies: ${dependencies.length}`)
         
         if (methods.length > 0) {
           this.indexData.methods.set(filePath, methods)
+          logger.debug(`${methods.length} method index'e eklendi: ${relativePath}`)
         }
         
         if (paths.length > 0) {
           this.indexData.paths.set(filePath, paths)
+          logger.debug(`${paths.length} path index'e eklendi: ${relativePath}`)
         }
         
         if (dependencies.length > 0) {
           this.indexData.dependencies.set(filePath, dependencies)
+          logger.debug(`${dependencies.length} dependency index'e eklendi: ${relativePath}`)
         }
+      } else {
+        logger.debug(`Dosya parse edilmiyor (desteklenmeyen format): ${relativePath}`)
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      logger.error(`Dosya işleme hatası ${filePath}: ${errorMessage}`)
       console.error(`Error processing file ${filePath}:`, error)
     }
   }

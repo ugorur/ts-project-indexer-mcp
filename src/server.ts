@@ -190,7 +190,7 @@ class ProjectIndexerServer {
       try {
         switch (name) {
           case 'analyze_project':
-            return await analyzeProjectTool(this.indexer, args || {})
+            return await analyzeProjectTool(this.indexer, args as any)
           case 'search_methods':
             return await searchMethodsTool(this.indexer, args as any)
           case 'find_dependencies':
