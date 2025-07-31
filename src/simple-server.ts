@@ -3,6 +3,7 @@
 import { ProjectIndexer } from './core/indexer.js'
 import { CacheManager } from './cache/cache-manager.js'
 import { SimpleFileWatcher } from './watchers/simple-file-watcher.js'
+import { logger } from './mcp-server.js'
 
 interface ToolRequest {
   tool: string
@@ -289,8 +290,8 @@ async function main() {
   const indexer = new SimpleProjectIndexer()
   await indexer.initialize()
 
-  console.error('🚀 Simple Project Indexer ready!')
-  console.error('Available tools: analyze_project, search_methods, find_dependencies, generate_graph, get_files, get_methods, get_paths, get_stats')
+  logger.info('🚀 Simple Project Indexer ready!')
+  logger.info('Available tools: analyze_project, search_methods, find_dependencies, generate_graph, get_files, get_methods, get_paths, get_stats')
 
   // Handle command line arguments
   if (process.argv.length > 2) {
@@ -302,22 +303,22 @@ async function main() {
       const result = await indexer.handleRequest({ tool, args })
       console.log(JSON.stringify(result, null, 2))
     } catch (error) {
-      console.error('Error:', error)
+      logger.error(`Error: ${error}`)
       process.exit(1)
     }
   } else {
-    console.error('Usage: node simple-server.js <tool> <args>')
-    console.error('Example: node simple-server.js analyze_project \'{"projectPath": "../"}\'')
+    logger.info('Usage: node simple-server.js <tool> <args>')
+    logger.info('Example: node simple-server.js analyze_project \'{"projectPath": "../"}\'')
   }
 }
 
 // Handle stdin for MCP-like communication
 if (process.stdin.isTTY) {
-  main().catch(console.error)
+  main().catch((error) => logger.error(`Main execution error: ${error}`))
 } else {
   const indexer = new SimpleProjectIndexer()
   indexer.initialize().then(() => {
-    console.error('🚀 Simple Project Indexer ready for stdin input!')
+    logger.info('🚀 Simple Project Indexer ready for stdin input!')
     
     process.stdin.setEncoding('utf8')
     let buffer = ''

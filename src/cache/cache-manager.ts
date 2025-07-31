@@ -1,5 +1,6 @@
 import { promises as fs } from 'node:fs'
 import { join } from 'node:path'
+import { logger } from '../mcp-server.js'
 import type { CacheEntry } from '../core/types.js'
 
 export class CacheManager {
@@ -68,7 +69,7 @@ export class CacheManager {
       const filePath = join(this.cacheDir, `${this.sanitizeKey(key)}.json`)
       await fs.writeFile(filePath, JSON.stringify(entry, null, 2))
     } catch (error) {
-      console.error(`Failed to write cache file for key ${key}:`, error)
+      logger.error(`Failed to write cache file for key ${key}: ${error}`)
     }
   }
 

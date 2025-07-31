@@ -1,5 +1,6 @@
 import chokidar from 'chokidar'
 import type { ProjectIndexer } from '../core/indexer.js'
+import { logger } from '../mcp-server.js'
 
 export class FileWatcher {
   private watcher?: chokidar.FSWatcher
@@ -15,7 +16,7 @@ export class FileWatcher {
       await this.stop()
     }
 
-    console.error(`👁️ Starting file watcher for: ${projectPath}`)
+    logger.info(`👁️ Starting file watcher for: ${projectPath}`)
 
     this.watcher = chokidar.watch(projectPath, {
       ignored: [
@@ -41,18 +42,18 @@ export class FileWatcher {
     this.watcher.on('unlinkDir', this.handleDirectoryDelete.bind(this))
 
     this.watcher.on('error', (error: Error) => {
-      console.error('File watcher error:', error)
+      logger.error(`File watcher error: ${error.message}`)
     })
 
     this.watcher.on('ready', () => {
-      console.error('✅ File watcher ready')
+      logger.info('✅ File watcher ready')
       this.isWatching = true
     })
   }
 
   async stop(): Promise<void> {
     if (this.watcher) {
-      console.error('🛑 Stopping file watcher...')
+      logger.info('🛑 Stopping file watcher...')
       await this.watcher.close()
       this.watcher = undefined
       this.isWatching = false
@@ -60,30 +61,30 @@ export class FileWatcher {
   }
 
   private async handleFileAdd(filePath: string): Promise<void> {
-    console.error(`📄 File added: ${filePath}`)
+    logger.debug(`📄 File added: ${filePath}`)
     // Could trigger incremental indexing here
     this.scheduleReindex()
   }
 
   private async handleFileChange(filePath: string): Promise<void> {
-    console.error(`📝 File changed: ${filePath}`)
+    logger.debug(`📝 File changed: ${filePath}`)
     // Could trigger incremental indexing here
     this.scheduleReindex()
   }
 
   private async handleFileDelete(filePath: string): Promise<void> {
-    console.error(`🗑️ File deleted: ${filePath}`)
+    logger.debug(`🗑️ File deleted: ${filePath}`)
     // Could remove from index here
     this.scheduleReindex()
   }
 
   private async handleDirectoryAdd(dirPath: string): Promise<void> {
-    console.error(`📁 Directory added: ${dirPath}`)
+    logger.debug(`📁 Directory added: ${dirPath}`)
     this.scheduleReindex()
   }
 
   private async handleDirectoryDelete(dirPath: string): Promise<void> {
-    console.error(`📁 Directory deleted: ${dirPath}`)
+    logger.debug(`📁 Directory deleted: ${dirPath}`)
     this.scheduleReindex()
   }
 
@@ -96,7 +97,7 @@ export class FileWatcher {
     }
 
     this.reindexTimeout = setTimeout(async () => {
-      console.error('🔄 Triggering incremental reindex due to file changes...')
+      logger.info('🔄 Triggering incremental reindex due to file changes...')
       // For now, just log. In a full implementation, we could trigger
       // selective reindexing of changed files only
     }, 2000) // Wait 2 seconds after last change

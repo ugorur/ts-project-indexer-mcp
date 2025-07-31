@@ -43,8 +43,7 @@ Add to your `claude_desktop_config.json`:
       "command": "npx",
       "args": [
         "-y",
-        "ts-project-indexer-mcp",
-        "/path/to/your/project"
+        "ts-project-indexer-mcp"
       ],
       "env": {}
     }
@@ -72,8 +71,7 @@ Add to your MCP configuration:
     "command": "npx",
     "args": [
       "-y", 
-      "ts-project-indexer-mcp",
-      "/path/to/your/project"
+      "ts-project-indexer-mcp"
     ]
   }
 }
@@ -94,21 +92,30 @@ Then use:
   "mcpServers": {
     "typescript-project-indexer": {
       "command": "ts-project-indexer",
-      "args": ["/path/to/your/project"],
+      "args": [],
       "env": {}
     }
   }
 }
 ```
 
+> **⚠️ Important Change in v1.1.0**: Project paths are no longer passed as command line arguments. Instead, use the `analyze_project` tool with an absolute `projectPath` parameter.
+
 ## 🎯 Usage Examples
 
 ### Basic Project Analysis
 
 ```javascript
-// Analyze current directory
+// Analyze a specific project (absolute path required)
 await mcp.callTool('analyze_project', {
-  projectPath: './',
+  projectPath: '/home/user/my-project',
+  includePatterns: ['**/*.ts', '**/*.js'],
+  excludePatterns: ['node_modules/**', 'dist/**']
+});
+
+// Windows example
+await mcp.callTool('analyze_project', {
+  projectPath: 'C:\\Users\\user\\my-project',
   includePatterns: ['**/*.ts', '**/*.js'],
   excludePatterns: ['node_modules/**', 'dist/**']
 });
@@ -149,10 +156,12 @@ await mcp.callTool('get_project_stats', {});
 Analyzes and indexes the entire project structure.
 
 **Parameters:**
-- `projectPath` (string): Path to project root (default: `./`)
+- `projectPath` (string, **required**): **Absolute path** to project root (e.g., `/home/user/project` or `C:\Users\user\project`)
 - `includePatterns` (array): File patterns to include (default: `['**/*.ts', '**/*.js', '**/*.json']`)
 - `excludePatterns` (array): File patterns to exclude (default: `['node_modules/**', 'dist/**', '**/*.d.ts']`)
 - `forceReindex` (boolean): Force full reindexing (default: `false`)
+
+> **⚠️ Important**: The `projectPath` parameter is required and must be an absolute path. Relative paths are not supported for security and reliability reasons.
 
 ### `search_methods`
 Search for methods, functions, and classes in the project.

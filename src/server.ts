@@ -20,6 +20,7 @@ import { generateGraphTool } from './tools/generate-graph.js'
 import { FilesResource } from './resources/files-resource.js'
 import { MethodsResource } from './resources/methods-resource.js'
 import { PathsResource } from './resources/paths-resource.js'
+import { logger } from './mcp-server.js'
 
 class ProjectIndexerServer {
   private server: Server
@@ -269,7 +270,7 @@ class ProjectIndexerServer {
     // Start file watcher for real-time updates
     await this.watcher.start('../')
     
-    console.error('🚀 MCP Project Indexer server started!')
+    logger.info('🚀 MCP Project Indexer server started!')
   }
 
   async stop() {
@@ -282,18 +283,18 @@ class ProjectIndexerServer {
 const server = new ProjectIndexerServer()
 
 process.on('SIGINT', async () => {
-  console.error('🛑 Shutting down MCP Project Indexer server...')
+  logger.info('🛑 Shutting down MCP Project Indexer server...')
   await server.stop()
   process.exit(0)
 })
 
 process.on('SIGTERM', async () => {
-  console.error('🛑 Shutting down MCP Project Indexer server...')
+  logger.info('🛑 Shutting down MCP Project Indexer server...')
   await server.stop()
   process.exit(0)
 })
 
 server.start().catch((error) => {
-  console.error('❌ Failed to start MCP Project Indexer server:', error)
+  logger.error(`❌ Failed to start MCP Project Indexer server: ${error}`)
   process.exit(1)
 })
