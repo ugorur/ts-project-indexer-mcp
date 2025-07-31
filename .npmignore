@@ -1,0 +1,59 @@
+# Source files
+src/
+tsconfig.json
+
+# Development dependencies
+.github/
+.gitignore
+.cache/
+*.debug
+
+# Documentation (keep README.md)
+CONTRIBUTING.md
+CHANGELOG.md
+
+# Development scripts and configs
+.env*
+*.log
+debug.log
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Test files
+test/
+tests/
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+
+# Coverage
+coverage/
+.nyc_output
+
+# Development tools
+eslint.config.js
+prettier.config.js
+
+# Example files
+examples/
+demo/
+
+# Temporary files
+tmp/
+temp/
+
+# Keep only dist/ and essential files
+# Essential files that WILL be included:
+# - package.json
+# - README.md
+# - LICENSE
+# - dist/

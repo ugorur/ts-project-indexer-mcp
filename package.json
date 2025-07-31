@@ -1,0 +1,59 @@
+{
+  "name": "typescript-project-indexer-mcp",
+  "version": "1.0.0",
+  "description": "A powerful MCP (Model Context Protocol) server that indexes and analyzes TypeScript/JavaScript projects, providing intelligent code exploration, dependency tracking, method discovery, and project structure analysis for AI assistants and development tools.",
+  "type": "module",
+  "main": "dist/mcp-server.js",
+  "bin": {
+    "ts-project-indexer": "dist/mcp-server.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/mcp-server.js",
+    "clean": "rm -rf dist",
+    "test": "echo \"No tests specified\" && exit 0",
+    "prepublishOnly": "npm run clean && npm run build",
+    "version": "npm run build",
+    "postversion": "git push && git push --tags",
+    "release:patch": "npm version patch",
+    "release:minor": "npm version minor", 
+    "release:major": "npm version major",
+    "pack:check": "npm pack --dry-run"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "typescript",
+    "javascript",
+    "project-indexer",
+    "code-analysis",
+    "ast-parser",
+    "dependency-tracking",
+    "method-discovery",
+    "ai-tools",
+    "development-tools",
+    "code-intelligence"
+  ],
+  "author": "Ugur Orur",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ugorur/ts-project-indexer-mcp.git"
+  },
+  "homepage": "https://github.com/ugorur/ts-project-indexer-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/ugorur/ts-project-indexer-mcp/issues"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.0",
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "imports": {
+    "#/*": "./dist/*"
+  }
+}
