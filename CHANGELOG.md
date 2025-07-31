@@ -5,6 +5,59 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-01-31
+
+### 🚀 Major Configuration Improvements
+
+#### Changed
+- **BREAKING**: Removed argument-based project path usage from MCP server
+- Project paths now must be specified via the `analyze_project` tool's `projectPath` parameter
+- All project paths must be absolute paths for better reliability and security
+- Improved MCP client integration by removing command-line argument dependencies
+
+#### Updated
+- **Documentation**: Updated USAGE.md with new configuration examples
+- **Logs**: Converted all Turkish log messages to English for international users
+- **Configuration**: Simplified MCP server configuration (no more project path in args)
+
+#### Benefits
+- 🔒 **Better Security**: Absolute path requirements prevent relative path vulnerabilities
+- 🔧 **Cleaner Integration**: MCP clients no longer need to specify project paths in configuration
+- 🌍 **International Support**: All logging now in English
+- 📊 **Flexible Usage**: Multiple projects can be analyzed in a single session
+
+#### Migration Guide
+**Before v1.1.0:**
+```json
+{
+  "command": "npx",
+  "args": ["-y", "ts-project-indexer-mcp", "/path/to/project"]
+}
+```
+
+**After v1.1.0:**
+```json
+{
+  "command": "npx", 
+  "args": ["-y", "ts-project-indexer-mcp"]
+}
+```
+
+Then use the `analyze_project` tool with absolute path:
+```javascript
+await mcp.callTool('analyze_project', {
+  projectPath: '/absolute/path/to/project'
+})
+```
+
+#### Technical Details
+- Removed project path parsing from command line arguments
+- Enhanced `analyze_project` tool to enforce absolute path validation
+- Improved error messages for better debugging experience
+- Streamlined server initialization process
+
+---
+
 ## [1.0.0] - 2025-01-31
 
 ### Added

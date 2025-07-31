@@ -15,12 +15,11 @@ import { CacheManager } from './cache/cache-manager.js'
 import { writeFileSync, appendFileSync } from 'fs'
 import { join, resolve } from 'path'
 
-// Parse command line arguments
+// Parse command line arguments - only for logging flag
 const args = process.argv.slice(2)
-let defaultProjectPath = process.cwd()
 const logEnabled = args.includes('--log')
 
-// Log dosyasının yolunu belirle - MCP server'ın bulunduğu dizinde debug.log
+// Determine log file path - debug.log in the directory where MCP server is located
 const serverDir = resolve(process.argv[1], '..')
 const logFilePath = join(serverDir, 'debug.log')
 
@@ -53,23 +52,19 @@ export const logger = {
   }
 }
 
-// Logger'ın enabled durumunu export et
+// Export logger enabled status
 export const isLogEnabled = () => logEnabled
 
-// Log dosyasını başlat
+// Initialize log file
 if (logEnabled) {
   writeFileSync(logFilePath, `=== TypeScript Project Indexer MCP Log Started ===\n${new Date().toISOString()}\n\n`, 'utf8')
-  logger.info(`Log sistemi aktif - Debug log dosyası: ${logFilePath}`)
-  logger.info(`Root dizin: ${process.cwd()}`)
-  logger.info(`Başlangıç argümanları: ${JSON.stringify(process.argv)}`)
+  logger.info(`Log system active - Debug log file: ${logFilePath}`)
+  logger.info(`Root directory: ${process.cwd()}`)
+  logger.info(`Startup arguments: ${JSON.stringify(process.argv)}`)
 }
 
-// Dynamic project path - will be updated via MCP Roots protocol
-let currentProjectPath = defaultProjectPath
-
-logger.info(`TypeScript Project Indexer MCP - Default project path: ${defaultProjectPath}`)
+logger.info(`TypeScript Project Indexer MCP - No default project path (argument-based usage removed)`)
 logger.info(`Current working directory: ${process.cwd()}`)
-logger.info(`Resolved project root: ${currentProjectPath}`)
 
 // Global instance to persist data across tool calls
 let globalIndexer: ProjectIndexer | null = null

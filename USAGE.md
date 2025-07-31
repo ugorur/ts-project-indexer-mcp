@@ -9,14 +9,10 @@ This guide shows you how to use TypeScript Project Indexer MCP after setting up 
 npm install -g ts-project-indexer-mcp
 ```
 
-### Step 2: Use with MCP Client
-```bash
-# Basic usage - analyze current directory
-ts-project-indexer ./
+### Step 2: Configure MCP Client
+The TypeScript Project Indexer now requires project paths to be specified via the `analyze_project` tool rather than command line arguments. This provides better flexibility and integration with MCP clients.
 
-# Analyze specific project
-ts-project-indexer /path/to/your/typescript/project
-```
+**Important Change in v1.1.0**: Project paths are no longer passed as command line arguments. Instead, use the `analyze_project` tool with an absolute path parameter.
 
 ## 🔧 MCP Configuration Examples
 
@@ -37,8 +33,7 @@ ts-project-indexer /path/to/your/typescript/project
     "command": "npx",
     "args": [
       "-y", 
-      "ts-project-indexer-mcp",
-      "/home/user/my-project"
+      "ts-project-indexer-mcp"
     ]
   }
 }
@@ -52,8 +47,7 @@ ts-project-indexer /path/to/your/typescript/project
       "command": "npx",
       "args": [
         "-y",
-        "ts-project-indexer-mcp", 
-        "/Users/user/my-project"
+        "ts-project-indexer-mcp"
       ],
       "env": {}
     }
@@ -130,9 +124,10 @@ ts-project-indexer --version
 3. **Authentication**: Ensure NPM token has publish permissions
 
 ### MCP Integration Issues
-1. **Path Resolution**: Ensure project path is absolute in MCP config
+1. **Path Resolution**: Ensure project path is absolute when calling `analyze_project` tool
 2. **Permissions**: Ensure MCP client has file system access
 3. **Node.js Version**: Ensure Node.js 18+ is installed
+4. **Project Analysis**: Call `analyze_project` tool first before using other indexing tools
 
 ## 📊 Feature Overview
 
@@ -164,10 +159,11 @@ ts-project-indexer --version
 4. Monitor GitHub Actions for build issues
 
 ### For MCP Users
-1. Use absolute paths in MCP configuration
+1. **Project paths must be absolute** when using the `analyze_project` tool
 2. Set appropriate timeout values (60s recommended)
 3. Enable auto-approve for frequently used tools
 4. Monitor console logs for performance insights
+5. Use the `analyze_project` tool first to index your project before using other tools
 
 ---
 
