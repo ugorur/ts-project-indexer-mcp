@@ -1,4 +1,4 @@
-import type { ProjectIndexer } from '#/core/indexer.js'
+import type { ProjectIndexer } from '../core/indexer.js'
 
 export interface GenerateGraphArgs {
   format?: 'mermaid' | 'dot' | 'json'

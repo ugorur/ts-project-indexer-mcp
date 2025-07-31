@@ -1,5 +1,5 @@
 import chokidar from 'chokidar'
-import type { ProjectIndexer } from '#/core/indexer.js'
+import type { ProjectIndexer } from '../core/indexer.js'
 
 export class FileWatcher {
   private watcher?: chokidar.FSWatcher
