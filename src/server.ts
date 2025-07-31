@@ -10,16 +10,16 @@ import {
   McpError,
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js'
-import { ProjectIndexer } from '#/core/indexer.js'
-import { CacheManager } from '#/cache/cache-manager.js'
-import { SimpleFileWatcher } from '#/watchers/simple-file-watcher.js'
-import { analyzeProjectTool } from '#/tools/analyze-project.js'
-import { searchMethodsTool } from '#/tools/search-methods.js'
-import { findDependenciesTool } from '#/tools/find-dependencies.js'
-import { generateGraphTool } from '#/tools/generate-graph.js'
-import { FilesResource } from '#/resources/files-resource.js'
-import { MethodsResource } from '#/resources/methods-resource.js'
-import { PathsResource } from '#/resources/paths-resource.js'
+import { ProjectIndexer } from './core/indexer.js'
+import { CacheManager } from './cache/cache-manager.js'
+import { SimpleFileWatcher } from './watchers/simple-file-watcher.js'
+import { analyzeProjectTool } from './tools/analyze-project.js'
+import { searchMethodsTool } from './tools/search-methods.js'
+import { findDependenciesTool } from './tools/find-dependencies.js'
+import { generateGraphTool } from './tools/generate-graph.js'
+import { FilesResource } from './resources/files-resource.js'
+import { MethodsResource } from './resources/methods-resource.js'
+import { PathsResource } from './resources/paths-resource.js'
 
 class ProjectIndexerServer {
   private server: Server
