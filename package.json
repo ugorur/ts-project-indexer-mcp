@@ -8,8 +8,8 @@
     "ts-project-indexer": "dist/mcp-server.js"
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "tsc --project ./tsconfig.json",
+    "dev": "tsc --project ./tsconfig.json --watch",
     "start": "node dist/mcp-server.js",
     "clean": "rm -rf dist",
     "test": "echo \"No tests specified\" && exit 0",
